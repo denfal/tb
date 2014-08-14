@@ -1,4 +1,4 @@
 tb
 ==
 
-Analysis of aggregated data on drug-resistant TB collected and consolidated by the World Health Organization
+Accessing aggregated TB data collected and consolidated by the World Health Organization for description & analysis
