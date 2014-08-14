@@ -1,0 +1,118 @@
+###################################################
+## Using aggregated data on MDR-TB
+## Source : Global TB Programme of WHO
+## Coding : denfal; starting 14.08.14
+###################################################
+
+#-----------------------------------------------
+# copy the path to your working directory
+setwd ("C:/folder/subfolder/sub-subfolder")
+
+#-----------------------------------------------
+# call packages
+require(reshape)
+require(plyr)
+require(ggplot2)
+
+#-----------------------------------------------
+# create functions 
+# row-wise summing of variables; sets to NA if all variables are NA
+.rowsums <- function(x) {
+  tosum <- as.matrix(x)
+  summed <- rowMeans(tosum, na.rm=TRUE) * rowSums(!is.na(tosum))
+  return(summed)
+}
+
+#-----------------------------------------------
+# import the main data files
+estimates <- read.table('https://extranet.who.int/tme/generateCSV.asp?ds=mdr_estimates', sep=",", header=T)
+
+notifs <- read.table('https://extranet.who.int/tme/generateCSV.asp?ds=notifications', sep=",", header=T)
+
+outcomes <- read.table('https://extranet.who.int/tme/generateCSV.asp?ds=outcomes', sep=",", header=T)
+
+#-----------------------------------------------
+# load & save Rdata file
+load('github.denfal.Rdata')
+save.image('github.denfal.Rdata')
+
+#-----------------------------------------------
+#-------------DATA DESCRIPTION------------------
+#-----------------------------------------------
+#-------------DATA DESCRIPTION------------------
+#-----------------------------------------------
+
+# NOTIFICATION
+# total MDR-TB notifications, by year (globally)
+xtabs(notifs$mdr~notifs$year)
+
+# total MDR-TB notifications, by year and region
+notif.reg<-ddply(notifs, c("g_whoregion", "year"), function (x) colSums(x[c("mdr","conf_mdr_tx", "unconf_mdr_tx")], na.rm=T))
+xtabs(mdr~year+g_whoregion, data=subset(notif.reg, year>2008))
+
+# total enrolments on MDR-TB treatment, by year and region
+notif.reg$mdrenrol<-.rowsums(cbind(notif.reg$conf_mdr_tx, notif.reg$unconf_mdr_tx))
+xtabs(mdrenrol~year+g_whoregion, data=subset(notif.reg, year>2008))
+
+
+# OUTCOMES
+# MDR-TB outcomes, by year and region
+outc.reg.m<-ddply(subset(outcomes, year>2006 & year<2012), c("g_whoregion", "year"), function (x) colSums(x[c("mdr_coh","mdr_cur", "mdr_cmplt", "mdr_died", "mdr_fail", "mdr_def")], na.rm=T))
+outc.reg.m$mdr_unk<-outc.reg.m$mdr_coh - .rowsums(cbind(outc.reg.m$mdr_cur, outc.reg.m$mdr_cmplt, outc.reg.m$mdr_died, outc.reg.m$mdr_fail, outc.reg.m$mdr_def))
+
+# XDR-TB outcomes, by year and region
+outc.reg.x<-ddply(subset(outcomes, year>2007 & year<2012), c("g_whoregion", "year"), function (x) colSums(x[c("xdr_coh","xdr_cur", "xdr_cmplt", "xdr_died", "xdr_fail", "xdr_def")], na.rm=T))
+outc.reg.x$xdr_unk<-outc.reg.x$xdr_coh - .rowsums(cbind(outc.reg.x$xdr_cur, outc.reg.x$xdr_cmplt, outc.reg.x$xdr_died, outc.reg.x$xdr_fail, outc.reg.x$xdr_def))
+
+View(outc.reg.m)
+View(outc.reg.x)
+
+#-----------------------------------------------
+#-----GRAPHICS-----GRAPHICS-----GRAPHICS--------
+#-----GRAPHICS-----GRAPHICS-----GRAPHICS--------
+#-----GRAPHICS-----GRAPHICS-----GRAPHICS--------
+#-----------------------------------------------
+
+# NOTIFICATION & ENROLMENT
+
+# convert datafile from wide to long format for plotting
+
+notif.reg.l<-melt(subset(notif.reg, year>2008, select=c(g_whoregion, year, mdr, mdrenrol)), id=c("g_whoregion", "year"))
+
+# plot paired bars by year, facetted by region
+ggplot(notif.reg.l, aes(x = factor(year))) + geom_bar(aes(weight=value, fill = factor(variable)), position = 'dodge') + xlab("") + ylab("Cases\n") +  
+  facet_wrap(~g_whoregion, nrow=2, scales="free_y") + 
+  theme(legend.title=element_blank(), legend.position = "top", legend.direction="horizontal", axis.ticks = element_blank(), plot.title = element_text(size = 18), axis.text.y= element_text(size = 12), axis.text.x= element_text(size = 8)) + 
+  labs(title="Notifications of MDR-TB cases and enrolment on MDR-TB treatment, 2009-2013\n") 
+
+ggsave("mdr_enrolments_by_region_year.pdf", width=16, height=8)
+
+# OUTCOMES - MDR
+
+# convert datafile from wide to long format for plotting
+
+outc.reg.ml<-melt(outc.reg.m, id=c("g_whoregion", "year", "mdr_coh"))
+
+# plot stacked bars by year, facetted by region
+ggplot(subset(outc.reg.ml, year<2011), aes(x = factor(year))) + geom_bar(aes(weight=value, fill = factor(variable, c("mdr_cur", "mdr_cmplt", "mdr_fail", "mdr_died", "mdr_def", "mdr_unk"))), position = 'fill') + xlab("") + ylab("Percentage of cohort") + geom_text(aes(label=(mdr_coh), y=-0.05), size = 3) +  scale_y_continuous(labels=percent) + scale_fill_manual(values=c("yellow", "orange", "black", "red", "blue", "grey40"), name="", labels=c("Cured", "Compled", "Treatment failed", "Died", "Lost to follow up", "Not evaluated")) + theme(legend.title=element_blank(), legend.position = "top", legend.direction="horizontal", axis.ticks = element_blank(), axis.title.y = element_blank(), plot.title = element_text(size = 16), axis.text.y= element_text(size = 12)) + labs(title="Outcomes for MDR-TB patients, 2007-2010 cohorts, by WHO region\nTotal cases with outcome data is shown beside each bar\n") + facet_wrap(~g_whoregion, nrow=2)
+
+ggsave("mdr_outcomes_region_year.pdf", width=16, height=8)
+
+
+# OUTCOMES - XDR
+
+# plot horizontal bars for % died by country
+ggplot(subset(outcomes, year==2010 & xdr_coh>9, select=c(country, xdr_coh, xdr_died)), aes(x=reorder(country, xdr_died/xdr_coh, sum))) + geom_bar(aes(weight=xdr_died/xdr_coh), fill="red") + xlab("") + ylab("Percentage of cohort") + geom_text(aes(label=(xdr_coh), y=-0.05), size = 3) +  scale_y_continuous(labels=percent) + theme(legend.title=element_blank(), legend.position = "none", axis.ticks = element_blank(), axis.title.y = element_blank(), plot.title = element_text(size = 16), axis.text.y= element_text(size = 12)) + labs(title="% deaths in XDR-TB patients, 2010 cohorts in countries >9 cases\nTotal cases with outcome data is shown beside each bar\n") + coord_flip()
+
+ggsave("xdr_cfr.pdf", width=16, height=8)
+
+
+# ESTIMATES
+
+estimates1<-merge(estimates, subset(notifs, year==2012, select=c(country, iso3, g_whoregion)), all.x=T, by=("iso3"))
+
+# plot horizontal bars for estimated MDR-TB cases in top countries, by region
+
+ggplot(subset(estimates1, e_mdr_num>999, select=c(country.x, g_whoregion, e_mdr_num)), aes(x=reorder(country.x, e_mdr_num, sum))) + geom_bar(aes(weight=e_mdr_num, fill=g_whoregion)) + xlab("") + ylab("Estimated MDR-TB cases") + coord_flip() + theme(legend.title=element_blank(), legend.position = "top", axis.ticks = element_blank(), axis.title.y = element_blank(), plot.title = element_text(size = 16), axis.text.y= element_text(size = 12)) + labs(title="Estimated MDR-TB cases among notified pulmonary TB cases, countries with 1000+ cases in 2012\n")
+
+ggsave("estimated_mdr_top_countries.pdf", width=16, height=8)
