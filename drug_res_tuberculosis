@@ -9,7 +9,8 @@
 setwd ("C:/folder/subfolder/sub-subfolder")
 
 #-----------------------------------------------
-# call packages
+# packages
+# install.packages(c("reshape", "plyr", "ggplot2", "scales"))
 require(reshape)
 require(plyr)
 require(ggplot2)
