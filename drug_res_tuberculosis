@@ -13,6 +13,7 @@ setwd ("C:/folder/subfolder/sub-subfolder")
 require(reshape)
 require(plyr)
 require(ggplot2)
+require(scales) # formatter for the scales continuous
 
 #-----------------------------------------------
 # create functions 
