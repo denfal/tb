@@ -28,11 +28,9 @@ require(scales) # formatter for the scales continuous
 
 #-----------------------------------------------
 # import the main data files
-estimates <-  read.csv(curl('https://extranet.who.int/tme/generateCSV.asp?ds=mdr_estimates')
-
-notifs <- read.csv(curl('https://extranet.who.int/tme/generateCSV.asp?ds=notifications')
-
-outcomes <- read.csv(curl('https://extranet.who.int/tme/generateCSV.asp?ds=outcomes')
+estimates <-read.csv(curl('https://extranet.who.int/tme/generateCSV.asp?ds=mdr_estimates'))
+notifs <-read.csv(curl('https://extranet.who.int/tme/generateCSV.asp?ds=notifications'))
+outcomes <-read.csv(curl('https://extranet.who.int/tme/generateCSV.asp?ds=outcomes'))
 
 #-----------------------------------------------
 # load & save Rdata file
