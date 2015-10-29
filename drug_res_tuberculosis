@@ -10,7 +10,8 @@ setwd ("C:/folder/subfolder/sub-subfolder")
 
 #-----------------------------------------------
 # packages
-# install.packages(c("reshape", "plyr", "ggplot2", "scales"))
+# install.packages(c("curl", "reshape", "plyr", "ggplot2", "scales"))
+require(curl) # inputting data from datasets behind https
 require(reshape)
 require(plyr)
 require(ggplot2)
@@ -27,11 +28,11 @@ require(scales) # formatter for the scales continuous
 
 #-----------------------------------------------
 # import the main data files
-estimates <- read.table('https://extranet.who.int/tme/generateCSV.asp?ds=mdr_estimates', sep=",", header=T)
+estimates <-  read.csv(curl('https://extranet.who.int/tme/generateCSV.asp?ds=mdr_estimates')
 
-notifs <- read.table('https://extranet.who.int/tme/generateCSV.asp?ds=notifications', sep=",", header=T)
+notifs <- read.csv(curl('https://extranet.who.int/tme/generateCSV.asp?ds=notifications')
 
-outcomes <- read.table('https://extranet.who.int/tme/generateCSV.asp?ds=outcomes', sep=",", header=T)
+outcomes <- read.csv(curl('https://extranet.who.int/tme/generateCSV.asp?ds=outcomes')
 
 #-----------------------------------------------
 # load & save Rdata file
