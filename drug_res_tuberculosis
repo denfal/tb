@@ -58,12 +58,12 @@ xtabs(mdrenrol~year+g_whoregion, data=subset(notif.reg, year>2008))
 
 # OUTCOMES
 # MDR-TB outcomes, by year and region
-outc.reg.m<-ddply(subset(outcomes, year>2006 & year<2012), c("g_whoregion", "year"), function (x) colSums(x[c("mdr_coh","mdr_cur", "mdr_cmplt", "mdr_died", "mdr_fail", "mdr_def")], na.rm=T))
-outc.reg.m$mdr_unk<-outc.reg.m$mdr_coh - .rowsums(cbind(outc.reg.m$mdr_cur, outc.reg.m$mdr_cmplt, outc.reg.m$mdr_died, outc.reg.m$mdr_fail, outc.reg.m$mdr_def))
+outc.reg.m<-ddply(subset(outcomes, year>2006 & year<2013), c("g_whoregion", "year"), function (x) colSums(x[c("mdr_coh","mdr_succ", "mdr_died", "mdr_fail", "mdr_lost")], na.rm=T))
+outc.reg.m$mdr_unk<-outc.reg.m$mdr_coh - .rowsums(cbind(outc.reg.m$mdr_succ, outc.reg.m$mdr_died, outc.reg.m$mdr_fail, outc.reg.m$mdr_lost))
 
 # XDR-TB outcomes, by year and region
-outc.reg.x<-ddply(subset(outcomes, year>2007 & year<2012), c("g_whoregion", "year"), function (x) colSums(x[c("xdr_coh","xdr_cur", "xdr_cmplt", "xdr_died", "xdr_fail", "xdr_def")], na.rm=T))
-outc.reg.x$xdr_unk<-outc.reg.x$xdr_coh - .rowsums(cbind(outc.reg.x$xdr_cur, outc.reg.x$xdr_cmplt, outc.reg.x$xdr_died, outc.reg.x$xdr_fail, outc.reg.x$xdr_def))
+outc.reg.x<-ddply(subset(outcomes, year>2007 & year<2013), c("g_whoregion", "year"), function (x) colSums(x[c("xdr_succ", "xdr_cmplt", "xdr_died", "xdr_fail", "xdr_lost")], na.rm=T))
+outc.reg.x$xdr_unk<-outc.reg.x$xdr_coh - .rowsums(cbind(outc.reg.x$xdr_succ, outc.reg.x$xdr_died, outc.reg.x$xdr_fail, outc.reg.x$xdr_lost))
 
 View(outc.reg.m)
 View(outc.reg.x)
