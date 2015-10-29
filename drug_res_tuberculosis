@@ -33,7 +33,7 @@ notifs <-read.csv(curl('https://extranet.who.int/tme/generateCSV.asp?ds=notifica
 outcomes <-read.csv(curl('https://extranet.who.int/tme/generateCSV.asp?ds=outcomes'))
 
 #-----------------------------------------------
-# load & save Rdata file
+# load & save Rdata file - if you have previously saved the file you can now load it
 load('github.denfal.Rdata')
 save.image('github.denfal.Rdata')
 
